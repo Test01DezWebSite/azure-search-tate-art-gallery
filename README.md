@@ -54,4 +54,8 @@ Fields = new[]
 
 ## Searching the Tate Art Collection
 
-After indexing the Tate Art Collection, you can start searching this collection.  
+After indexing the Tate Art Collection, you can start searching this collection.  To do this, you will need your Azure Search service name and API Key.  Alternatively, you can use the Azure Search playground service (Search Service: azs-playground.search.windows.net, Query API Key: 82C2E107EEB733CB613EBD24977BCB0E) to try some queries if you did not create your own search service.
+
+Here are a few JSFiddle Pages that show some interesting queries.  Simply replace the URL with your search service name and API key:
+
+
