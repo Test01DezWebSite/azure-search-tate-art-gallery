@@ -6,16 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace TateIndexer
 {
     class Program
     {
-        private static string searchServiceName = [Azure Search Service Name];
-        private static string apiKey = [Azure Search API Key];
+        private static string searchServiceName = [Search Service Name];
+        private static string apiKey = [Search Service API Key];
         private static SearchServiceClient _searchClient;
         private static SearchIndexClient _indexClient;
         private static string AzureSearchIndex = "tate-art-collection";
@@ -27,14 +25,17 @@ namespace TateIndexer
             _indexClient = _searchClient.Indexes.GetClient(AzureSearchIndex);
 
             Console.WriteLine("{0}", "Deleting index...\n");
-            if (DeleteIndex())
+            DeleteIndex();
+
+            Console.WriteLine("{0}", "Creating index...\n");
+            if (CreateIndex() == false)
             {
-                Console.WriteLine("{0}", "Creating index...\n");
-                CreateIndex();
+                Console.ReadLine();
+                return;
             }
 
             Console.WriteLine("{0}", "Uploading content...\n");
-            UploadContent(_indexClient);
+            UploadContent();
 
             Console.WriteLine("\nPress any key to continue\n");
             Console.ReadLine();
@@ -51,53 +52,63 @@ namespace TateIndexer
             catch (Exception ex)
             {
                 Console.WriteLine("Error deleting index: {0}\r\n", ex.Message);
-                Console.WriteLine("Did you remember to add your SearchServiceName and SearchServiceApiKey to the app.config?\r\n");
+                Console.WriteLine("Did you remember to set your SearchServiceName and SearchServiceApiKey?\r\n");
                 return false;
             }
 
             return true;
         }
-        private static void CreateIndex()
+
+        private static bool CreateIndex()
         {
             // Create the Azure Search index based on the included schema
+
+            // I am enabling all CORS origins so that the JavaScript sample will work from all clients
+            // It is highly recommended that you only enable origins that are absolutely necessary
+            CorsOptions co = new CorsOptions();
+            List<string> origins = new List<string>();
+            origins.Add("*");
+            co.AllowedOrigins = origins;
+
             try
             {
                 var definition = new Index()
                 {
                     Name = AzureSearchIndex,
+                    CorsOptions = co,
                     Fields = new[] 
                     { 
-                        new Field("acno",           DataType.String)         { IsKey = true,  IsSearchable = false, IsFilterable = false, IsSortable = false, IsFacetable = false, IsRetrievable = true},
-                        new Field("acquisitionYear",DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,  IsSortable = true,  IsFacetable = true,    IsRetrievable = true},
-                        new Field("all_artists",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = true,  IsSortable = true,  IsFacetable = true,  IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
-                        new Field("catalogueGroupCompleteStatus",DataType.String) { IsKey = false, IsSearchable = true,  IsFilterable = true,  IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
-                        new Field("catalogueGroupFinbergNumber",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = true,  IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
-                        new Field("catalogueGroupGroupType",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = true,  IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
-                        new Field("catalogueGroupId",DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,  IsSortable = true,  IsFacetable = true,    IsRetrievable = true},
-                        new Field("catalogueGroupShortTitle",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
-                        new Field("classification",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
-                        new Field("contributorCount",DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,  IsSortable = true,  IsFacetable = true,    IsRetrievable = true},
-                        new Field("contributors", DataType.Collection(DataType.String))     { IsSearchable = true, IsFilterable = true, IsFacetable = true },
-                        new Field("creditLine",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
-                        new Field("dateRange",DataType.String) { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true},
-                        new Field("dateText",DataType.String) { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true},
-                        new Field("depth",DataType.String) { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true},
-                        new Field("dimensions",DataType.String) { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true},
-                        new Field("foreignTitle",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true},
-                        new Field("groupTitle",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true},
-                        new Field("height",    DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = true,  IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
-                        new Field("width",    DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = true,  IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
-                        new Field("id",DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,  IsSortable = true,  IsFacetable = true,    IsRetrievable = true},
-                        new Field("inscription",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
-                        new Field("medium",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
-                        new Field("movementCount",DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,  IsSortable = true,  IsFacetable = true,    IsRetrievable = true},
-                        new Field("subjectCount",DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,  IsSortable = true,  IsFacetable = true,    IsRetrievable = true},
-                        new Field("subjects", DataType.Collection(DataType.String))     { IsSearchable = true, IsFilterable = true, IsFacetable = true },
-                        new Field("thumbnailCopyright",    DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true},
-                        new Field("thumbnailUrl",    DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true},
-                        new Field("title",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
-                        new Field("units",    DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = true,  IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
-                        new Field("url",    DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = false,  IsSortable = false,  IsFacetable = false,  IsRetrievable = true}
+                        new Field("acno",                       DataType.String)         { IsKey = true,  IsSearchable = false, IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true},
+                        new Field("acquisitionYear",            DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,   IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("all_artists",                DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = true,   IsSortable = true,  IsFacetable = true,  IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
+                        new Field("catalogueGroupCompleteStatus",DataType.String)        { IsKey = false, IsSearchable = true,  IsFilterable = true,   IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("catalogueGroupFinbergNumber",DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = true,   IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("catalogueGroupGroupType",    DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = true,   IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("catalogueGroupId",           DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,   IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("catalogueGroupShortTitle",   DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
+                        new Field("classification",             DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
+                        new Field("contributorCount",           DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,   IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("contributors",               DataType.Collection(DataType.String))     { IsSearchable = true, IsFilterable = true,  IsFacetable = true },
+                        new Field("creditLine",                 DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
+                        new Field("dateRange",                  DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true},
+                        new Field("dateText",                   DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true},
+                        new Field("depth",                      DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true},
+                        new Field("dimensions",                 DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true},
+                        new Field("foreignTitle",               DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true},
+                        new Field("groupTitle",                 DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true},
+                        new Field("height",                     DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = true,  IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("width",                      DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = true,  IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("id",                         DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,   IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("inscription",                DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
+                        new Field("medium",                     DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
+                        new Field("movementCount",              DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,   IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("subjectCount",               DataType.Int32)          { IsKey = false, IsSearchable = false, IsFilterable = true,   IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("subjects",                   DataType.Collection(DataType.String))     { IsSearchable = true, IsFilterable = true,  IsFacetable = true },
+                        new Field("thumbnailCopyright",         DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = false, IsSortable = false, IsFacetable = false, IsRetrievable = true},
+                        new Field("thumbnailUrl",               DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = false, IsSortable = false, IsFacetable = false, IsRetrievable = true},
+                        new Field("title",                      DataType.String)         { IsKey = false, IsSearchable = true,  IsFilterable = false,  IsSortable = false, IsFacetable = false, IsRetrievable = true, Analyzer = AnalyzerName.EnMicrosoft},
+                        new Field("units",                      DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = true,  IsSortable = true,  IsFacetable = true,  IsRetrievable = true},
+                        new Field("url",                        DataType.String)         { IsKey = false, IsSearchable = false,  IsFilterable = false, IsSortable = false, IsFacetable = false, IsRetrievable = true}
                     }
                 };
                 _searchClient.Indexes.Create(definition);
@@ -105,17 +116,18 @@ namespace TateIndexer
             catch (Exception ex)
             {
                 Console.WriteLine("Error creating index: {0}\r\n", ex.Message);
+                return false;
             }
+            return true;
 
         }
 
-        private static void UploadContent(SearchIndexClient indexClient)
+        private static void UploadContent()
         {
             // Scan the JSON files from the Tate Art Collection and upload to Azure Search
-            List<IndexAction> indexOperations = new List<IndexAction>();
+            var indexOperations = new List<IndexAction>();
 
-            string[] files = Directory.GetFiles(@"artworks", "*.json", System.IO.SearchOption.AllDirectories);
-            int counter = 0;
+            string[] files = Directory.GetFiles(@"..\..\artworks", "*.json", System.IO.SearchOption.AllDirectories);
             int totalCounter = 0;
 
             try
@@ -124,7 +136,6 @@ namespace TateIndexer
                 {
                     using (StreamReader jsonfile = File.OpenText(file))
                     {
-                        counter++;
                         totalCounter++;
                         Document doc = new Document();
                         string json = jsonfile.ReadToEnd();
@@ -161,6 +172,7 @@ namespace TateIndexer
                         doc.Add("units", array["units"].Value);
                         doc.Add("url", array["url"].Value);
 
+                        // The below JSON parsing is pretty messy and should be cleaned up with a more succint parsing
                         if (array["contributors"] != null)
                         {
                             List<string> contributorList = new List<string>();
@@ -209,19 +221,18 @@ namespace TateIndexer
                         }
 
                         indexOperations.Add(IndexAction.Upload(doc));
-                        if (counter >= 500)
+                        if (indexOperations.Count >= 500)
                         {
-                            Console.WriteLine("Writing {0} documents of {1} total documents...", counter, totalCounter);
-                            indexClient.Documents.Index(new IndexBatch(indexOperations));
+                            Console.WriteLine("Writing {0} documents of {1} total documents...", indexOperations.Count, totalCounter);
+                            _indexClient.Documents.Index(new IndexBatch(indexOperations));
                             indexOperations.Clear();
-                            counter = 0;
                         }
                     }
                 }
-                if (counter >= 0)
+                if (indexOperations.Count >= 0)
                 {
-                    Console.WriteLine("Writing {0} documents of {1} total documents...", counter, totalCounter);
-                    indexClient.Documents.Index(new IndexBatch(indexOperations));
+                    Console.WriteLine("Writing {0} documents of {1} total documents...", indexOperations.Count, totalCounter);
+                    _indexClient.Documents.Index(new IndexBatch(indexOperations));
                 }
 
             }
@@ -235,9 +246,6 @@ namespace TateIndexer
                         String.Join(", ", e.IndexingResults.Where(r => !r.Succeeded).Select(r => r.Key)));
             }
 
-            // Wait a while for indexing to complete.
-            Console.WriteLine("{0}", "Waiting 5 seconds for content to become searchable...\n");
-            Thread.Sleep(5000);
         }
 
     }
