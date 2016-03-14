@@ -7,6 +7,10 @@ This sample shows how [Azure Search](https://azure.microsoft.com/en-us/services/
 
 The goal of this section will be to upload the metadata for the Art Collection to an Azure Search index.  Once indexed, we can they execute full text searches to retrieve and filter the results based on various categories (facets).  If you have not already created an Azure Search service, you can do so using the [Free Azure Trial](https://azure.microsoft.com/en-us/pricing/free-trial/).  You can also use a Free Azure Search service, but since the free service is limited to 10,000 documents, you will not be able to index the entire collection.  If you want to index the full collection, you might want to choose a [Basic Search] Service(https://azure.microsoft.com/en-us/blog/azure-search-introduces-new-lower-cost-tier-in-preview/).  For more details on how to create an Azure Search service, please visit [this page](https://azure.microsoft.com/en-us/documentation/articles/search-create-service-portal/).
 
+In the event, you simply want to play with this index rather than creating your own Azure Search server, I have pre-created an Azure Search index and have included a read-only key that allows you to peform searches.  Please see the section "Searching the Tate Art Collection" for more details on how to do this.<br>
+<b>Search Service</b>: azs-playground.search.windows.net<br>
+<b>Query API Key</b>: 82C2E107EEB733CB613EBD24977BCB0E<br>
+
 Indexing the content is pretty simple after you have created the search service.  Using the included Visual Studio solution, simply apply your Azure Search service name and Azure Search API Key to the Program.cs file and launch the application. The resulting index will have the following schema:
 
 <pre>
@@ -47,3 +51,7 @@ Fields = new[]
 }
 </code>
 </pre>
+
+## Searching the Tate Art Collection
+
+After indexing the Tate Art Collection, you can start searching this collection.  
