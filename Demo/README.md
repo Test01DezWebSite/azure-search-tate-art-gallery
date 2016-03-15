@@ -1,4 +1,3 @@
 The included code is based on Start Bootstrap(http://startbootstrap.com/) and allows for viewing of the Tate Gallery Art dataset.
 
-You can see a simple [demonstration of this here](https://rawgit.com/liamca/azure-search-tate-art-gallery/master/Demo/index.html) along with [associated code](https://github.com/liamca/azure-search-tate-art-gallery/tree/master/Demo).
-
+You can see a simple [demonstration of this here](https://rawgit.com/liamca/azure-search-tate-art-gallery/master/Demo/index.html).
