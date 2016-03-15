@@ -3,6 +3,8 @@
 This sample shows how [Azure Search](https://azure.microsoft.com/en-us/services/search/
 ) can be used to explore the [Tate Gallery Art Collection](http://www.tate.org.uk/art/) through full text search.  The metadata along with thumbnail images for their 65,000+ art collection has been generously provided from the following [GitHub Repository](https://github.com/tategallery/collection).  Please look at this page for more information on the license details of this dataset.
 
+<a href="https://rawgit.com/liamca/azure-search-tate-art-gallery/master/Demo/index.html"><img src="https://raw.githubusercontent.com/liamca/azure-search-tate-art-gallery/master/demo_screenshot.png"></a>
+
 ## Indexing the Art Collection
 
 The goal of this section will be to upload the metadata for the Art Collection to an Azure Search index.  Once indexed, we can they execute full text searches to retrieve and filter the results based on various categories (facets).  If you have not already created an Azure Search service, you can do so using the [Free Azure Trial](https://azure.microsoft.com/en-us/pricing/free-trial/).  You can also use a Free Azure Search service, but since the free service is limited to 10,000 documents, you will not be able to index the entire collection.  If you want to index the full collection, you might want to choose a [Basic Search] Service(https://azure.microsoft.com/en-us/blog/azure-search-introduces-new-lower-cost-tier-in-preview/).  For more details on how to create an Azure Search service, please visit [this page](https://azure.microsoft.com/en-us/documentation/articles/search-create-service-portal/).
