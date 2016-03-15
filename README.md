@@ -58,5 +58,5 @@ After indexing the Tate Art Collection, you can start searching this collection.
 
 ## Online Demo
 
-You can see a simple [demonstration of this here](https://rawgit.com/liamca/azure-search-tate-art-gallery/master/WebSite/demo/index.html).
+You can see a simple [demonstration of this here](https://rawgit.com/liamca/azure-search-tate-art-gallery/master/Demo/index.html).
 
